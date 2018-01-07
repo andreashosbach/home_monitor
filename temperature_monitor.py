@@ -16,9 +16,8 @@ system("modprobe w1-therm")
 # =============================================================================
 # Global variable declarations ---
 # =============================================================================
+config = {}
 temp_sensors = []
-interval = 3
-channel_id = "PV88FZQRJBVVA8L8"
 
 # =============================================================================
 # Read configuration file
@@ -26,10 +25,19 @@ channel_id = "PV88FZQRJBVVA8L8"
 # Entry format: sensor_name=id
 def read_config():
     global temp_sensors
-    config_file = open("temp_sensor.config")
-    for line in config_file.readlines():
+    global config
+
+    general_config_file = open("temperature_monitor.config")
+    for line in general_config_file.readlines():
+        splitted = line.split("=")
+        config[splitted[0].strip()] = splitted[1].strip()
+    print(config)
+    
+    sensor_config_file = open("temp_sensor.config")
+    for line in sensor_config_file.readlines():
         splitted = line.split("=")
         temp_sensors.append([splitted[0].strip(), splitted[1].strip()])
+    print(temp_sensors)    
     
 # =============================================================================
 # Read raw data from w1 device
@@ -80,16 +88,19 @@ def create_log_entry(sensor_temp):
 # Append a new line to the log file
 # =============================================================================
 def write_log(log_entry):
-    logfile = open("/home/pi/temp_monitor.csv", "a")
-    logfile.write(log_entry + "\n")
-    logfile.close()
+    if "local_data_file" in config.keys():
+        logfile = open(config["local_data_file"], "a")
+        logfile.write(log_entry + "\n")
+        logfile.close()
+    else:
+        print("Skipped local logging")
 
 # =============================================================================
 # Measure and write every x seconds
 # =============================================================================
 # Resets the timer
 def measure():
-    Timer(5.0, measure).start()
+    Timer(float(config["timer_wait"]), measure).start()
     
     sensor_temp = []
     
@@ -107,7 +118,7 @@ def measure():
 def send_to_thingspeak(sensor_temp):
     # use your API key generated in the thingspeak channels for the value of 'key'
     measurement = sensor_temp[0]
-    params = urllib.urlencode({measurement[0] : str(measurement[1]), "key" : channel_id})
+    params = urllib.urlencode({measurement[0] : str(measurement[1]), "key" : config["thingspeak_channel_key"]})
     print(params)    
     headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
     conn = httplib.HTTPSConnection("api.thingspeak.com")                
@@ -116,6 +127,7 @@ def send_to_thingspeak(sensor_temp):
         response = conn.getresponse()
         print(response.status, response.reason)
         data = response.read()
+        print(data)
         conn.close()
     except:
         print("Connection to api.thingspeak.com failed")
