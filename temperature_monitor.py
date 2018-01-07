@@ -77,10 +77,10 @@ def create_log_header():
 # =============================================================================
 # Reads all sensors and creates and writes a log entry
 # =============================================================================
-def create_log_entry(sensor_temp):
+def create_log_entry(sensor_measurement):
     log_entry = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    for measurement in sensor_temp:
+    for measurement in sensor_measurement:
         log_entry = log_entry + ";" + str(measurement[1])
         
     return log_entry
@@ -103,36 +103,41 @@ def write_log(log_entry):
 def measure():
     Timer(float(config["timer_wait"]), measure).start()
     
-    sensor_temp = []
+    sensor_measurement = []
     
     for sensor in temp_sensors:
         temp = read_temp(sensor[1])
-        sensor_temp.append([sensor[0], temp])
+        sensor_measurement.append([sensor[0], temp])
     
-    log_entry = create_log_entry(sensor_temp)
+    log_entry = create_log_entry(sensor_measurement)
     write_log(log_entry)
-    send_to_thingspeak(sensor_temp)
+    send_to_thingspeak(sensor_measurement)
     sys.stdout.flush()
     
 # =============================================================================
 # Send to Thingspeak
 # =============================================================================
-def send_to_thingspeak(sensor_temp):
-    # use your API key generated in the thingspeak channels for the value of 'key'
-    measurement = sensor_temp[0]
-    params = urllib.urlencode({measurement[0] : str(measurement[1]), "key" : config["thingspeak_channel_key"]})
-    print(params)    
-    headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
-    conn = httplib.HTTPSConnection("api.thingspeak.com")                
-    try:
-        conn.request("POST", "/update", params, headers)
-        response = conn.getresponse()
-        print(response.status, response.reason)
-        data = response.read()
-        print(data)
-        conn.close()
-    except:
-        print("Connection to api.thingspeak.com failed")
+def send_to_thingspeak(sensor_measurement):
+    if "thingspeak_channel_key" in config.keys():
+        param_dict = {}
+        for measurement in sensor_measurement:
+            param_dict[measurement[0]] = measurement[1]
+        param_dict["key"] = config["thingspeak_channel_key"]
+        params = urllib.urlencode(param_dict)
+        print(params)    
+        headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
+        conn = httplib.HTTPSConnection("api.thingspeak.com")                
+        try:
+            conn.request("POST", "/update", params, headers)
+            response = conn.getresponse()
+            print(response.status, response.reason)
+            data = response.read()
+            print(data)
+            conn.close()
+        except:
+            print("Connection to api.thingspeak.com failed")
+    else:
+        print("Skipped sending to thingspeak")
             
 # =============================================================================
 # Main ---
