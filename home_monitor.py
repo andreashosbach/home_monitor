@@ -107,7 +107,7 @@ def measure():
 def send_to_thingspeak(sensor_temp):
     # use your API key generated in the thingspeak channels for the value of 'key'
     measurement = sensor_temp[0]
-    params = urllib.urlencode({"field1" : str(measurement[1]), "key" : channel_id})
+    params = urllib.urlencode({measurement[0] : str(measurement[1]), "key" : channel_id})
     print(params)    
     headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
     conn = httplib.HTTPSConnection("api.thingspeak.com")                
