@@ -6,6 +6,7 @@ from threading import Timer
 import httplib
 import urllib
 import time
+import sys
 
 # =============================================================================
 # Load drivers ---
@@ -111,6 +112,7 @@ def measure():
     log_entry = create_log_entry(sensor_temp)
     write_log(log_entry)
     send_to_thingspeak(sensor_temp)
+    sys.stdout.flush()
     
 # =============================================================================
 # Send to Thingspeak
