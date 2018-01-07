@@ -3,6 +3,8 @@
 from os import system 
 from datetime import datetime
 from threading import Timer
+import httplib
+import urllib
 import time
 
 # =============================================================================
@@ -16,6 +18,7 @@ system("modprobe w1-therm")
 # =============================================================================
 temp_sensors = []
 interval = 3
+channel_id = "PV88FZQRJBVVA8L8"
 
 # =============================================================================
 # Read configuration file
@@ -65,11 +68,11 @@ def create_log_header():
 # =============================================================================
 # Reads all sensors and creates and writes a log entry
 # =============================================================================
-def create_log_entry():
+def create_log_entry(sensor_temp):
     log_entry = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    for sensor in temp_sensors:
-        log_entry = log_entry + ";" + str(read_temp(sensor[1]))
+    for measurement in sensor_temp:
+        log_entry = log_entry + ";" + str(measurement[1])
         
     return log_entry
       
@@ -86,11 +89,37 @@ def write_log(log_entry):
 # =============================================================================
 # Resets the timer
 def measure():
-    print("Measure")
     Timer(5.0, measure).start()
-    log_entry = create_log_entry()
-    write_log(log_entry)
     
+    sensor_temp = []
+    
+    for sensor in temp_sensors:
+        temp = read_temp(sensor[1])
+        sensor_temp.append([sensor[0], temp])
+    
+    log_entry = create_log_entry(sensor_temp)
+    write_log(log_entry)
+    send_to_thingspeak(sensor_temp)
+    
+# =============================================================================
+# Send to Thingspeak
+# =============================================================================
+def send_to_thingspeak(sensor_temp):
+    # use your API key generated in the thingspeak channels for the value of 'key'
+    measurement = sensor_temp[0]
+    params = urllib.urlencode({"field1" : str(measurement[1]), "key" : channel_id})
+    print(params)    
+    headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
+    conn = httplib.HTTPSConnection("api.thingspeak.com")                
+    try:
+        conn.request("POST", "/update", params, headers)
+        response = conn.getresponse()
+        print(response.status, response.reason)
+        data = response.read()
+        conn.close()
+    except:
+        print("Connection to api.thingspeak.com failed")
+            
 # =============================================================================
 # Main ---
 # =============================================================================
