@@ -34,7 +34,7 @@ def read_config():
         config[splitted[0].strip()] = splitted[1].strip()
     print(config)
     
-    sensor_config_file = open("temp_sensor.config")
+    sensor_config_file = open(config["sensor_config_file"])
     for line in sensor_config_file.readlines():
         splitted = line.split("=")
         temp_sensors.append([splitted[0].strip(), splitted[1].strip()])
@@ -56,7 +56,7 @@ def read_temp(sensor):
     lines = temp_raw(sensor)
     while lines[0].strip()[-3:] != "YES":
         time.sleep(0.2)
-        lines = temp_raw()
+        lines = temp_raw(sensor)
 
     temp_output = lines[1].find("t=")
 
