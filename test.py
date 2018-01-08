@@ -9,6 +9,9 @@ import sys
 temp_sensors = []
 config = {}
 
+def trace(line):
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + str(line))
+
 def read_config():
     global temp_sensors
     global config
@@ -35,7 +38,9 @@ def send_to_thingspeak(sensor_temp):
         params = urllib.urlencode(param_dict)
         print(params)    
         headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
-        conn = httplib.HTTPSConnection("api.thingspeak.com")                
+        conn = httplib.HTTPSConnection("api.thingspeak.com")
+        response = "respo"
+        trace([datetime.now(),response])
     else:
         print("Skipped sending to thingspeak")
 

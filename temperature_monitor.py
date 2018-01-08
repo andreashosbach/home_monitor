@@ -21,6 +21,13 @@ config = {}
 temp_sensors = []
 
 # =============================================================================
+# Write a formatted trace line
+# =============================================================================
+def trace(line):
+    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + str(line))
+    sys.stdout.flush()
+
+# =============================================================================
 # Read configuration file
 # =============================================================================
 # Entry format: sensor_name=id
@@ -32,19 +39,19 @@ def read_config():
     for line in general_config_file.readlines():
         splitted = line.split("=")
         config[splitted[0].strip()] = splitted[1].strip()
-    print(config)
+    trace(config)
     
     sensor_config_file = open(config["sensor_config_file"])
     for line in sensor_config_file.readlines():
         splitted = line.split("=")
         temp_sensors.append([splitted[0].strip(), splitted[1].strip()])
-    print(temp_sensors)    
+    trace(temp_sensors)    
     
 # =============================================================================
 # Read raw data from w1 device
 # =============================================================================
 def temp_raw(sensor):
-    f = open("/sys/bus/w1/devices/" + sensor + "/w1_slave", "r")
+    f = open(config["sensor_path"] + sensor + "/w1_slave", "r")
     lines = f.readlines()
     f.close()
     return lines
@@ -93,8 +100,27 @@ def write_log(log_entry):
         logfile = open(config["local_data_file"], "a")
         logfile.write(log_entry + "\n")
         logfile.close()
-    else:
-        print("Skipped local logging")
+
+# =============================================================================
+# Send to Thingspeak
+# =============================================================================
+def send_to_thingspeak(sensor_measurement):
+    if "thingspeak_channel_key" in config.keys():
+        param_dict = {}
+        for measurement in sensor_measurement:
+            param_dict[measurement[0]] = measurement[1]
+        param_dict["key"] = config["thingspeak_channel_key"]
+        params = urllib.urlencode(param_dict)
+        headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
+        conn = httplib.HTTPSConnection("api.thingspeak.com")                
+        try:
+            conn.request("POST", "/update", params, headers)
+            response = conn.getresponse()
+            data = response.read()
+            trace([response.status, response.reason, data])
+            conn.close()
+        except:
+            trace("Sending to Thingspeak failed")
 
 # =============================================================================
 # Measure and write every x seconds
@@ -112,39 +138,13 @@ def measure():
     log_entry = create_log_entry(sensor_measurement)
     write_log(log_entry)
     send_to_thingspeak(sensor_measurement)
-    sys.stdout.flush()
-    
-# =============================================================================
-# Send to Thingspeak
-# =============================================================================
-def send_to_thingspeak(sensor_measurement):
-    if "thingspeak_channel_key" in config.keys():
-        param_dict = {}
-        for measurement in sensor_measurement:
-            param_dict[measurement[0]] = measurement[1]
-        param_dict["key"] = config["thingspeak_channel_key"]
-        params = urllib.urlencode(param_dict)
-        print(params)    
-        headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
-        conn = httplib.HTTPSConnection("api.thingspeak.com")                
-        try:
-            conn.request("POST", "/update", params, headers)
-            response = conn.getresponse()
-            print(response.status, response.reason)
-            data = response.read()
-            print(data)
-            conn.close()
-        except:
-            print("Connection to api.thingspeak.com failed")
-    else:
-        print("Skipped sending to thingspeak")
             
 # =============================================================================
 # Main ---
 # =============================================================================
-print("Starting")
+trace("Starting")
 read_config()
 log_header = create_log_header()
 write_log(log_header)
-print("Running")
+trace("Running")
 measure()        
