@@ -1,12 +1,10 @@
 #!/usr/bin/python
  
 from os import system 
-from datetime import datetime
 from threading import Timer
-import httplib
-import urllib
-import time
-import sys
+from thingspeak import post_to_thingspeak_channel
+from ds18b20 import read_sensor
+from utils import trace
 
 # =============================================================================
 # Load drivers ---
@@ -19,13 +17,6 @@ system("modprobe w1-therm")
 # =============================================================================
 config = {}
 sensors = []
-
-# =============================================================================
-# Write a formatted trace line
-# =============================================================================
-def trace(line):
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + str(line))
-    sys.stdout.flush()
 
 # =============================================================================
 # Read configuration file
@@ -43,54 +34,6 @@ def read_config():
     sensors = eval(sensor_config_file.read())
     trace(sensors)    
     
-# =============================================================================
-# Read raw data from w1 device
-# =============================================================================
-def temp_raw(sensor):
-    f = open(config["sensor_path"] + sensor + "/w1_slave", "r")
-    lines = f.readlines()
-    f.close()
-    return lines
-
-# =============================================================================
-# Read value of a temperature sensor
-# =============================================================================
-def read_temp(sensor): 
-    lines = temp_raw(sensor)
-    while lines[0].strip()[-3:] != "YES":
-        time.sleep(0.2)
-        lines = temp_raw(sensor)
-
-    temp_output = lines[1].find("t=")
-
-    if temp_output != -1:
-        temp_string = lines[1].strip()[temp_output+2:]
-        temp_c = float(temp_string) / 1000.0
-        return temp_c
-
-# =============================================================================
-# Send to Thingspeak
-# =============================================================================
-def send_to_thingspeak(sensor_measurement):
-    param_dict = {}
-    for measurement in sensor_measurement:
-        param_dict[measurement["field"]] = measurement["value"]
-        
-    if "thingspeak_channel_key" in config.keys():
-        param_dict["key"] = config["thingspeak_channel_key"]
-        params = urllib.urlencode(param_dict)
-        headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
-        conn = httplib.HTTPSConnection("api.thingspeak.com")                
-        try:
-            conn.request("POST", "/update", params, headers)
-            response = conn.getresponse()
-            data = response.read()
-            trace([response.status, response.reason, data])
-            conn.close()
-        except:
-            trace("Sending to Thingspeak failed")
-    else:
-        trace(param_dict)
 
 # =============================================================================
 # Measure and write every x seconds
@@ -99,18 +42,26 @@ def send_to_thingspeak(sensor_measurement):
 def measure():
     Timer(float(config["timer_wait"]), measure).start()
     
-    sensor_measurement = []
+    measurements = []
     
     for sensor in sensors:
-        temp = read_temp(sensor["id"])
-        sensor_measurement.append({ "field" : sensor["field"], "value" : temp})
-    
-    send_to_thingspeak(sensor_measurement)
+        temp = read_sensor(config["sensor_path"], sensor["id"])
+        measurements.append({ "field" : sensor["field"], "value" : temp})
+
+    if "thingspeak_channel_key" in config.keys():
+        post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
+    else:
+        trace(measurements)
             
 # =============================================================================
 # Main ---
 # =============================================================================
-trace("Starting")
-read_config()
-trace("Running")
-measure()        
+def main():
+    trace("Starting")
+    read_config()
+    trace("Running")
+    measure()        
+    
+# =============================================================================
+if __name__ == "__main__":
+    main()

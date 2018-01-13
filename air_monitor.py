@@ -1,24 +1,15 @@
 #!/usr/bin/python
  
-from datetime import datetime
 from threading import Timer
-import httplib
-import urllib
-import sys
-import Adafruit_DHT 
- 
+from dht22 import read_sensor
+from thingspeak import post_to_thingspeak_channel
+from utils import trace
+
 # =============================================================================
 # Global variable declarations ---
 # =============================================================================
 config = {}
 sensors = []
-
-# =============================================================================
-# Write a formatted trace line
-# =============================================================================
-def trace(line):
-    print(datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + str(line))
-    sys.stdout.flush()
 
 # =============================================================================
 # Read configuration file
@@ -36,36 +27,6 @@ def read_config():
     trace(sensors) 
     
 # =============================================================================
-# Read sensor data ---
-# =============================================================================
-def read_sensor(sensor_pin): 
-    humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, sensor_pin) 
-    return (humidity, temperature) 
-    
-# =============================================================================
-# Send to Thingspeak
-# =============================================================================
-def send_to_thingspeak(measurements):
-    if "thingspeak_channel_key" in config.keys():
-        param_dict = {}
-        for measurement in measurements:
-            param_dict[measurement["field"]] = measurement["value"]
-        param_dict["key"] = config["thingspeak_channel_key"]
-        params = urllib.urlencode(param_dict)
-
-        headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
-        conn = httplib.HTTPSConnection("api.thingspeak.com")                
-
-        try:
-            conn.request("POST", "/update", params, headers)
-            response = conn.getresponse()
-            data = response.read()
-            trace([response.status, response.reason, data])
-            conn.close()
-        except:
-            trace("Sending to Thingspeak failed")
-
-# =============================================================================
 # Measure and write every x seconds
 # =============================================================================
 # Resets the timer
@@ -79,13 +40,20 @@ def measure():
         measurements.append({"field" : sensor["temperature_field"], "value" : temperature})
         measurements.append({"field" : sensor["humidity_field"], "value" : humidity})
     
-    send_to_thingspeak(measurements)
+    if "thingspeak_channel_key" in config.keys():
+        post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
+    else:
+        trace(measurements)
             
 # =============================================================================
 # Main ---
 # =============================================================================
-trace("Starting")
-read_config()
-trace("Running")
-measure()        
+def main():
+    trace("Starting")
+    read_config()
+    trace("Running")
+    measure()        
 
+# =============================================================================
+if __name__ == "__main__":
+    main()
