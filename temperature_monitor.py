@@ -73,35 +73,6 @@ def read_temp(sensor):
         return temp_c
 
 # =============================================================================
-# Log Header
-# =============================================================================
-def create_log_header():
-    log_header = "Datetime"
-    for sensor in sensors:
-        log_header = log_header + ";" + sensor[0]
-    return log_header
-
-# =============================================================================
-# Reads all sensors and creates and writes a log entry
-# =============================================================================
-def create_log_entry(sensor_measurement):
-    log_entry = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    for measurement in sensor_measurement:
-        log_entry = log_entry + ";" + str(measurement[1])
-        
-    return log_entry
-      
-# =============================================================================
-# Append a new line to the log file
-# =============================================================================
-def write_log(log_entry):
-    if "local_data_file" in config.keys():
-        logfile = open(config["local_data_file"], "a")
-        logfile.write(log_entry + "\n")
-        logfile.close()
-
-# =============================================================================
 # Send to Thingspeak
 # =============================================================================
 def send_to_thingspeak(sensor_measurement):
@@ -135,8 +106,6 @@ def measure():
         temp = read_temp(sensor[1])
         sensor_measurement.append([sensor[0], temp])
     
-    log_entry = create_log_entry(sensor_measurement)
-    write_log(log_entry)
     send_to_thingspeak(sensor_measurement)
             
 # =============================================================================
@@ -145,6 +114,5 @@ def measure():
 trace("Starting")
 read_config()
 log_header = create_log_header()
-write_log(log_header)
 trace("Running")
 measure()        
