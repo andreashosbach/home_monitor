@@ -18,7 +18,7 @@ system("modprobe w1-therm")
 # Global variable declarations ---
 # =============================================================================
 config = {}
-temp_sensors = []
+sensors = []
 
 # =============================================================================
 # Write a formatted trace line
@@ -32,7 +32,7 @@ def trace(line):
 # =============================================================================
 # Entry format: sensor_name=id
 def read_config():
-    global temp_sensors
+    global sensors
     global config
 
     general_config_file = open("temperature_monitor.config")
@@ -44,8 +44,8 @@ def read_config():
     sensor_config_file = open(config["sensor_config_file"])
     for line in sensor_config_file.readlines():
         splitted = line.split("=")
-        temp_sensors.append([splitted[0].strip(), splitted[1].strip()])
-    trace(temp_sensors)    
+        sensors.append([splitted[0].strip(), splitted[1].strip()])
+    trace(sensors)    
     
 # =============================================================================
 # Read raw data from w1 device
@@ -77,7 +77,7 @@ def read_temp(sensor):
 # =============================================================================
 def create_log_header():
     log_header = "Datetime"
-    for sensor in temp_sensors:
+    for sensor in sensors:
         log_header = log_header + ";" + sensor[0]
     return log_header
 
@@ -131,7 +131,7 @@ def measure():
     
     sensor_measurement = []
     
-    for sensor in temp_sensors:
+    for sensor in sensors:
         temp = read_temp(sensor[1])
         sensor_measurement.append([sensor[0], temp])
     
