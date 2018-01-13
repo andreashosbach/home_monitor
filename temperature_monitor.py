@@ -36,15 +36,11 @@ def read_config():
     global config
 
     general_config_file = open("temperature_monitor.config")
-    for line in general_config_file.readlines():
-        splitted = line.split("=")
-        config[splitted[0].strip()] = splitted[1].strip()
+    config = eval(general_config_file.read())
     trace(config)
     
-    sensor_config_file = open(config["sensor_config_file"])
-    for line in sensor_config_file.readlines():
-        splitted = line.split("=")
-        sensors.append([splitted[0].strip(), splitted[1].strip()])
+    sensor_config_file = open("temp_sensor.config")
+    sensors = eval(sensor_config_file.read())
     trace(sensors)    
     
 # =============================================================================
@@ -76,10 +72,11 @@ def read_temp(sensor):
 # Send to Thingspeak
 # =============================================================================
 def send_to_thingspeak(sensor_measurement):
+    param_dict = {}
+    for measurement in sensor_measurement:
+        param_dict[measurement["field"]] = measurement["value"]
+        
     if "thingspeak_channel_key" in config.keys():
-        param_dict = {}
-        for measurement in sensor_measurement:
-            param_dict[measurement[0]] = measurement[1]
         param_dict["key"] = config["thingspeak_channel_key"]
         params = urllib.urlencode(param_dict)
         headers = {"Content-typZZe": "application/x-www-form-urlencoded","Accept": "text/plain"}
@@ -92,6 +89,8 @@ def send_to_thingspeak(sensor_measurement):
             conn.close()
         except:
             trace("Sending to Thingspeak failed")
+    else:
+        trace(param_dict)
 
 # =============================================================================
 # Measure and write every x seconds
@@ -103,8 +102,8 @@ def measure():
     sensor_measurement = []
     
     for sensor in sensors:
-        temp = read_temp(sensor[1])
-        sensor_measurement.append([sensor[0], temp])
+        temp = read_temp(sensor["id"])
+        sensor_measurement.append({ "field" : sensor["field"], "value" : temp})
     
     send_to_thingspeak(sensor_measurement)
             
@@ -113,6 +112,5 @@ def measure():
 # =============================================================================
 trace("Starting")
 read_config()
-log_header = create_log_header()
 trace("Running")
 measure()        
