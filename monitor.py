@@ -45,17 +45,18 @@ def measure():
     Timer(float(config["timer_wait"]), measure).start()
     
     measurements = []
-    temp = 10
-    humidity = 11
     
     for sensor in sensors:
         if sensor["type"] == "DHT22":
             temp, humidity = dht22.read_sensor(sensor["id"])
-            measurements.append({ "field" : sensor["temperature"], "value" : temp})
-            measurements.append({ "field" : sensor["humidity"], "value" : humidity})
+            if temp != None:
+                measurements.append({ "field" : sensor["temperature"], "value" : temp})
+            if humidity != None:
+                measurements.append({ "field" : sensor["humidity"], "value" : humidity})
         elif sensor["type"] == "DS18B20":
             temp = ds18b20.read_sensor(config["DS18B20_sensor_path"], sensor["id"])
-            measurements.append({ "field" : sensor["temperature"], "value" : temp})
+            if temp != None:
+                measurements.append({ "field" : sensor["temperature"], "value" : temp})
         else:
             trace("Unknown sensor type: " + str(sensor))
 
