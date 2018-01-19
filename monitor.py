@@ -2,9 +2,11 @@
  
 from os import system 
 from threading import Timer
-from thingspeak import post_to_thingspeak_channel
-from ds18b20 import read_sensor
-from utils import trace
+import sys
+from datalogging import trace
+import ds18b20
+import dht22
+import thingspeak
 
 # =============================================================================
 # Load drivers ---
@@ -23,17 +25,17 @@ sensors = []
 # =============================================================================
 # Entry format: sensor_name=id
 def read_config():
-    global sensors
     global config
-
-    general_config_file = open("temperature_monitor.config")
+    global sensors
+    
+    config_file_name = "monitor.config"
+    if len(sys.argv) == 2:
+        config_file_name = sys.argv[1]
+    
+    general_config_file = open(config_file_name)
     config = eval(general_config_file.read())
+    sensors = config["sensors"]
     trace(config)
-    
-    sensor_config_file = open("temp_sensor.config")
-    sensors = eval(sensor_config_file.read())
-    trace(sensors)    
-    
 
 # =============================================================================
 # Measure and write every x seconds
@@ -43,13 +45,23 @@ def measure():
     Timer(float(config["timer_wait"]), measure).start()
     
     measurements = []
+    temp = 10
+    humidity = 11
     
     for sensor in sensors:
-        temp = read_sensor(config["sensor_path"], sensor["id"])
-        measurements.append({ "field" : sensor["field"], "value" : temp})
+        if sensor["type"] == "DHT22":
+            temp, humidity = dht22.read_sensor(sensor["id"])
+            measurements.append({ "field" : sensor["temperature"], "value" : temp})
+            measurements.append({ "field" : sensor["humidity"], "value" : humidity})
+        elif sensor["type"] == "DS18B20":
+            temp = ds18b20.read_sensor(config["DS18B20_sensor_path"], sensor["id"])
+            measurements.append({ "field" : sensor["temperature"], "value" : temp})
+        else:
+            trace("Unknown sensor type: " + str(sensor))
 
     if "thingspeak_channel_key" in config.keys():
-        post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
+        thingspeak.post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
+        trace(measurements)
     else:
         trace(measurements)
             

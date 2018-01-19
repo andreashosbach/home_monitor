@@ -1,6 +1,6 @@
 import urllib
 import httplib
-from utils import trace
+from datalogging import trace
 
 # =============================================================================
 # Send to Thingspeak

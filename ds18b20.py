@@ -1,5 +1,5 @@
 import time
-from utils import trace
+from datalogging import trace
 
 # =============================================================================
 # Read raw data from w1 device
