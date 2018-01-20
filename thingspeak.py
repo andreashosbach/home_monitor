@@ -1,5 +1,6 @@
 import urllib
 import httplib
+import sys 
 from datalogging import trace
 
 # =============================================================================
@@ -27,3 +28,4 @@ def post_to_thingspeak_channel(sensor_measurement, channel_key):
         conn.close()
     except:
         trace("Sending to Thingspeak failed")
+        trace(str(sys.exc_info()))
