@@ -8,4 +8,4 @@ def read_sensor(sensor_pin):
     if humidity is None and temperature is None:
         print("Failed to get reading on sensor: " + str(sensor_pin))
 
-    return (humidity, temperature) 
+    return (temperature, humidity) 
