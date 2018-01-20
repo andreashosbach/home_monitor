@@ -60,11 +60,9 @@ def measure():
         else:
             trace("Unknown sensor type: " + str(sensor))
 
+    trace(measurements)
     if "thingspeak_channel_key" in config.keys():
         thingspeak.post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
-        trace(measurements)
-    else:
-        trace(measurements)
             
 # =============================================================================
 # Main ---
