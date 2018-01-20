@@ -1,3 +1,16 @@
+sudo nano /etc/defaults/keyboard
+ -> change "gb" to "ch"
+ 
+sudo raspi-config
+ -> hostname (network)
+ -> password
+ -> ssh
+ -> WiFi
+ 
+sudo apt-get update
+
+sudo apt-get install git 
+
 Install Stuff for DHT22 Sensor:
 
 On Pi:
