@@ -11,8 +11,8 @@ import thingspeak
 # =============================================================================
 # Load drivers ---
 # =============================================================================
-system("modprobe w1-gpio")
-system("modprobe w1-therm")
+system("sudo modprobe w1-gpio")
+system("sudo modprobe w1-therm")
 
 # =============================================================================
 # Global variable declarations ---
