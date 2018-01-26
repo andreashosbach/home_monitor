@@ -1,6 +1,7 @@
 import urllib
 import httplib
 import sys 
+import datalogging
 from datalogging import trace
 
 # =============================================================================
@@ -22,10 +23,10 @@ def post_to_thingspeak_channel(sensor_measurement, channel_key):
         response = conn.getresponse()
         data = response.read()
         if response.status == 200:
-            trace(["Success", response.reason, data])
+            trace(["Success", response.reason, data], datalogging.INFO)
         else:
-            trace(["Failed", response.status, response.reason, data])
+            trace(["Failed", response.status, response.reason, data], datalogging.WARN)
         conn.close()
     except:
-        trace("Sending to Thingspeak failed")
-        trace(str(sys.exc_info()))
+        trace("Sending to Thingspeak failed", datalogging.ERROR)
+        trace(str(sys.exc_info()), datalogging.ERROR)

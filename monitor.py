@@ -1,70 +1,52 @@
 #!/usr/bin/python
  
-from os import system 
 from threading import Timer
-import sys
+import datalogging
 from datalogging import trace
 import ds18b20
-import dht22
+#import dht22
 import thingspeak
+from config import has_config
+from config import get_config
+from config import get_sensors
+from config import read_config
 
-# =============================================================================
-# Global variable declarations ---
-# =============================================================================
-config = {}
-sensors = []
-
-# =============================================================================
-# Read configuration file
-# =============================================================================
-# Entry format: sensor_name=id
-def read_config():
-    global config
-    global sensors
-    
-    config_file_name = "monitor.config"
-    if len(sys.argv) == 2:
-        config_file_name = sys.argv[1]
-    
-    general_config_file = open(config_file_name)
-    config = eval(general_config_file.read())
-    sensors = config["sensors"]
-    trace(config)
 
 # =============================================================================
 # Measure and write every x seconds
 # =============================================================================
 # Resets the timer
 def measure():
-    Timer(float(config["timer_wait"]), measure).start()
+    Timer(float(get_config("timer_wait")), measure).start()
     
     measurements = []
     
-    for sensor in sensors:
+    for sensor in get_sensors():
         if sensor["type"] == "DHT22":
-            temp, humidity = dht22.read_sensor(sensor["id"])
+#            temp, humidity = dht22.read_sensor(sensor["id"])
+            temp = 30.0
+            humidity =70.0
             if temp != None:
                 measurements.append({ "field" : sensor["temperature"], "value" : temp})
             if humidity != None:
                 measurements.append({ "field" : sensor["humidity"], "value" : humidity})
         elif sensor["type"] == "DS18B20":
-            temp = ds18b20.read_sensor(config["DS18B20_sensor_path"], sensor["id"])
+            temp = ds18b20.read_sensor(get_config("DS18B20_sensor_path"), sensor["id"])
             if temp != None:
                 measurements.append({ "field" : sensor["temperature"], "value" : temp})
         else:
-            trace("Unknown sensor type: " + str(sensor))
+            trace("Unknown sensor type: " + str(sensor), datalogging.ERROR)
 
-    trace(measurements)
-    if "thingspeak_channel_key" in config.keys():
-        thingspeak.post_to_thingspeak_channel(measurements, config["thingspeak_channel_key"])
+    trace(measurements, datalogging.INFO)
+    if has_config("thingspeak_channel_key"):
+        thingspeak.post_to_thingspeak_channel(measurements, get_config("thingspeak_channel_key"))
             
 # =============================================================================
 # Main ---
 # =============================================================================
 def main():
-    trace("Starting")
-    read_config()
-    trace("Running")
+    print("Reading configuration")
+    print(read_config())
     measure()        
     
 # =============================================================================
