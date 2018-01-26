@@ -1,13 +1,13 @@
-import Adafruit_DHT 
-import datalogging
-from datalogging import trace
-
+from Adafruit_DHT import read_retry 
+from Adafruit_DHT import DHT22
+from trace import trace
+from trace import ERROR
 # =============================================================================
 # Read sensor data ---
 # =============================================================================
 def read_sensor(sensor_pin): 
-    humidity, temperature = Adafruit_DHT.read_retry(Adafruit_DHT.DHT22, sensor_pin) 
+    humidity, temperature = read_retry(DHT22, sensor_pin) 
     if humidity is None and temperature is None:
-        trace("Failed to get reading on sensor: " + str(sensor_pin), datalogging.ERROR)
+        trace("Failed to get reading on sensor: " + str(sensor_pin), ERROR)
 
     return (temperature, humidity) 

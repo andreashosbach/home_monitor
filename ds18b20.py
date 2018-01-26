@@ -1,6 +1,7 @@
 import time
-import datalogging
-from datalogging import trace
+from trace import trace
+from trace import ERROR
+from trace import WARN
 
 # =============================================================================
 # Read raw data from w1 device
@@ -21,10 +22,10 @@ def read_sensor(sensor_path, sensor_id):
         time.sleep(0.2)
         lines = read_temperature_raw(sensor_path, sensor_id)
         if remaining_retry == 0:
-            trace("Sensor: " + str(sensor_id) + "read failed giving up", datalogging.ERROR)
+            trace("Sensor: " + str(sensor_id) + "read failed giving up", ERROR)
             return 0.0
         else:
-            trace("Sensor: " + str(sensor_id) + "read failed retry", datalogging.WARN)
+            trace("Sensor: " + str(sensor_id) + "read failed retry", WARN)
             remaining_retry = remaining_retry - 1
 
     temp_output = lines[1].find("t=")

@@ -1,25 +1,21 @@
-from datetime import datetime
-import sys
 from config import get_config
-
-INFO = "INFO"
-WARN = "WARN"
-ERROR = "ERROR"
-ALWAYS = "ALWAYS"
+from config import has_config
+from thingspeak import post_to_thingspeak_channel
+from trace import trace
+from trace import INFO 
 
 # =============================================================================
-# Write a formatted trace line
+# Logging
 # =============================================================================
-def trace(line, level):
-    global config
-    # INFO WARN ERROR
-    # INFO: INFO WARN ERROR
-    # WARN: WARN ERROR
-    # ERROR: ERROR
-    trace_level = get_config("trace_level")
-    if trace_level == ERROR and level != ERROR:
-        return
-    elif trace_level == WARN and (level != ERROR and level != WARN):
-        return
-    print(level + " - "+datetime.now().strftime("%Y-%m-%d %H:%M:%S") + " - " + str(line))
-    sys.stdout.flush()
+def log(measurements):
+
+    if(not has_config("logging")):
+        trace("no logging", INFO)
+
+    logging = get_config("logging")
+    
+    if "trace" in logging:
+        trace(measurements, logging["trace"]["level"])
+
+    if "thingspeak" in logging:
+        post_to_thingspeak_channel(measurements, logging["thingspeak"]["channel_key"])
