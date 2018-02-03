@@ -1,6 +1,6 @@
 from config import get_config
 from config import has_config
-from thingspeak import post_to_thingspeak_channel
+from thingspeak import post_thingspeak_channel_update
 from trace import trace
 from trace import INFO 
 
@@ -18,4 +18,4 @@ def log(measurements):
         trace(measurements, logging["trace"]["level"])
 
     if "thingspeak" in logging:
-        post_to_thingspeak_channel(measurements, logging["thingspeak"]["channel_key"])
+        post_thingspeak_channel_update(measurements, logging["thingspeak"]["channel_key"])
