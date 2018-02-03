@@ -3,7 +3,6 @@
 from threading import Timer
 from config import get_config
 from config import read_config
-import actions
 import sensors
 import datalogging
 
@@ -16,7 +15,6 @@ def measure():
     
     measurements = sensors.measure() 
     datalogging.log(measurements)
-    actions.run_actions(measurements)
     
 # =============================================================================
 # Main ---
