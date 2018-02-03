@@ -11,6 +11,7 @@ def log(measurements):
 
     if(not has_config("logging")):
         trace("no logging", INFO)
+        return
 
     logging = get_config("logging")
     

@@ -10,6 +10,7 @@ def run_actions(measurements):
     
     if(not has_config("actions")):
         trace("no actions", datalogging.INFO)
+        return
     
     val = {"field1" : None, 
            "field2" : None, 
