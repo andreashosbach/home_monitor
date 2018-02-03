@@ -15,7 +15,10 @@ def read_config():
     
     general_config_file = open(config_file_name)
     config = eval(general_config_file.read())
-    sensors = config["sensors"]
+    if config.has_key("sensors"):
+        sensors = config["sensors"]
+    else:
+        print("No sensor config")
     return config
 
 def has_config(key):

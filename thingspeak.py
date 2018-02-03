@@ -1,6 +1,5 @@
 import urllib
 import urllib2
-import httplib
 import sys 
 from trace import trace
 from trace import INFO
