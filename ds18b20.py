@@ -3,19 +3,15 @@ from trace import trace
 from trace import ERROR
 from trace import WARN
 
-# =============================================================================
-# Read raw data from w1 device
-# =============================================================================
 def read_temperature_raw(sensor_path, sensor_id):
+    # Read raw data from w1 device
     sensor_file = open(sensor_path + sensor_id + "/w1_slave", "r")
     lines = sensor_file.readlines()
     sensor_file.close()
     return lines
 
-# =============================================================================
-# Read value of a temperature sensor_id
-# =============================================================================
 def read_sensor(sensor_path, sensor_id): 
+    # Read value of a temperature sensor_id
     lines = read_temperature_raw(sensor_path, sensor_id)
     remaining_retry = 10
     while lines[0].strip()[-3:] != "YES":

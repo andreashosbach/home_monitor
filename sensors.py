@@ -5,10 +5,8 @@ import dht22
 from trace import trace
 from trace import ERROR
 
-# =============================================================================
-# Read data from sensors
-# =============================================================================
 def measure():
+    # Read data from sensors
     measurements = []
     
     for sensor in get_sensors():

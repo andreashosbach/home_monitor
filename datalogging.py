@@ -4,10 +4,8 @@ from thingspeak import post_thingspeak_channel_update
 from trace import trace
 from trace import INFO 
 
-# =============================================================================
-# Logging
-# =============================================================================
 def log(measurements):
+    # Logging
 
     if(not has_config("logging")):
         trace("no logging", INFO)

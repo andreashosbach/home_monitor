@@ -7,15 +7,13 @@ WARN = "WARN"
 ERROR = "ERROR"
 ALWAYS = "ALWAYS"
 
-# =============================================================================
-# Write a formatted trace line
-# =============================================================================
 def trace(line, level):
-    global config
+    # Write a formatted trace line
     # INFO WARN ERROR
     # INFO: INFO WARN ERROR
     # WARN: WARN ERROR
     # ERROR: ERROR
+    global config
     trace_level = get_config("trace_level")
     if trace_level == ERROR and level != ERROR:
         return

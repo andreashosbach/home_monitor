@@ -1,16 +1,11 @@
 import sys
 
-# =============================================================================
-# Global variable declarations ---
-# =============================================================================
 config = {}
 sensors = []
 
-# =============================================================================
-# Read configuration file
-# =============================================================================
-# Entry format: sensor_name=id
 def read_config():
+    # Read configuration file
+    # Entry format: sensor_name=id
     global config
     global sensors
     
@@ -23,21 +18,15 @@ def read_config():
     sensors = config["sensors"]
     return config
 
-# =============================================================================
-# Check if a config value for a key exists
-# =============================================================================
 def has_config(key):
+    # Check if a config value for a key exists
     return key in config.keys()
     
-# =============================================================================
-# Get config value for a key
-# =============================================================================
 def get_config(key):
+    # Get config value for a key
     return config[key]
 
-# =============================================================================
-# Get configured sensors
-# =============================================================================
 def get_sensors():
+    # Get configured sensors
     return sensors
 
