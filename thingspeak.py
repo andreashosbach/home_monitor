@@ -41,7 +41,7 @@ def get_thingspeak_channel_feed(channel_id, read_api_key, number_of_results):
 def get_thingspeak_field_feed(channel_id, field_id, read_api_key, number_of_results):
     #Send an HTTP request to view channel field feed data
     #https://ch.mathworks.com/help/thingspeak/get-channel-field-feed.html
-    param_dict = {"api_key" : read_api_key, "results" : number_of_results}
+    param_dict = {"api_key" : read_api_key, "results" : number_of_results, "timezone" : "Europe/Berlin"}
     return thingspeak_get_request("channels/" + str(channel_id)  + "/fields/" + str(field_id) + ".json", param_dict)
 
 def thingspeak_get_request(endpoint, param_dict):

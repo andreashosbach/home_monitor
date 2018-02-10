@@ -5,6 +5,7 @@ from config import get_config
 from config import read_config
 import sensors
 import datalogging
+import sys
 
 def measure():
     # Measure and write every x seconds
@@ -17,7 +18,11 @@ def measure():
 def main():
     # Main
     print("Reading configuration")
-    print(read_config())
+    config_file_name = "monitor.config"
+    if len(sys.argv) == 2:
+        config_file_name = sys.argv[1]
+
+    print(read_config(config_file_name))
     measure()        
     
 # =============================================================================
